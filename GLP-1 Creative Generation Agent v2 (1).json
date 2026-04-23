@@ -45,7 +45,7 @@
         "operation": "getAll",
         "driveId": {
           "__rl": true,
-          "value": "MyDrive",
+          "value": "",
           "mode": "list",
           "cachedResultName": "My Drive"
         },
@@ -76,7 +76,7 @@
         "operation": "getAll",
         "driveId": {
           "__rl": true,
-          "value": "MyDrive",
+          "value": "",
           "mode": "list",
           "cachedResultName": "My Drive"
         },
@@ -266,7 +266,7 @@
         "name": "={{ $('DM — Extract Image URL').item.json.folderName }}",
         "driveId": {
           "__rl": true,
-          "value": "MyDrive",
+          "value": "",
           "mode": "list",
           "cachedResultName": "My Drive"
         },
@@ -298,7 +298,7 @@
         "name": "={{ $('TR — Extract Image URL').item.json.folderName }}",
         "driveId": {
           "__rl": true,
-          "value": "MyDrive",
+          "value": "",
           "mode": "list",
           "cachedResultName": "My Drive"
         },
@@ -627,7 +627,7 @@
         "operation": "getAll",
         "driveId": {
           "__rl": true,
-          "value": "MyDrive",
+          "value": "",
           "mode": "list",
           "cachedResultName": "My Drive"
         },
@@ -738,7 +738,7 @@
         "name": "={{ $('MV — Extract Image URL').item.json.folderName }}",
         "driveId": {
           "__rl": true,
-          "value": "MyDrive",
+          "value": "",
           "mode": "list",
           "cachedResultName": "My Drive"
         },

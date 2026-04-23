@@ -280,7 +280,8 @@
     },
     {
       "parameters": {
-        "operation": "createFolder",
+        "resource": "folder",
+        "operation": "create",
         "name": "={{ $('DM — Build Images List').item.json.folderName }}",
         "driveId": {
           "__rl": true,
@@ -312,7 +313,8 @@
     },
     {
       "parameters": {
-        "operation": "createFolder",
+        "resource": "folder",
+        "operation": "create",
         "name": "={{ $('TR — Build Images List').item.json.folderName }}",
         "driveId": {
           "__rl": true,
@@ -766,7 +768,8 @@
     },
     {
       "parameters": {
-        "operation": "createFolder",
+        "resource": "folder",
+        "operation": "create",
         "name": "={{ $('MV — Build Images List').item.json.folderName }}",
         "driveId": {
           "__rl": true,

@@ -1,0 +1,1136 @@
+{
+  "name": "GLP-1 Creative Generation Agent v2",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst content = response.content[0].text;\nlet variations;\ntry { variations = JSON.parse(content.replace(/```json|```/g, '').trim()); }\ncatch(e) { throw new Error('Failed to parse: ' + content.substring(0,200)); }\nconst meta = $('Parse Ad Analysis1').first().json;\nreturn [{ json: { ...meta, variations } }];"
+      },
+      "id": "e1f85952-cd37-429f-aef4-347225299d6c",
+      "name": "Parse Variations",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const meta = $input.first().json;\nreturn meta.variations.direct_meds.map(v => ({ json: { ...meta, brand: 'Direct Meds', brandKey: 'direct_meds', outputFolderId: 'DIRECT_MEDS_OUTPUT_FOLDER_ID', brandKitFolderId: 'DIRECT_MEDS_BRAND_KIT_FOLDER_ID', variation: v.variation, hook: v.hook, body: v.body, cta: v.cta, higgsfield_prompt: v.higgsfield_prompt, has_logo: meta.analysis.has_logo, has_product: meta.analysis.has_product_image, outputFileName: `direct_meds_variation_${v.variation}.jpg` } }));"
+      },
+      "id": "9ce64795-b557-4777-9487-7bd00b26fbcd",
+      "name": "Split — Direct Meds",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1552,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const meta = $input.first().json;\nreturn meta.variations.trimrx.map(v => ({ json: { ...meta, brand: 'TrimRx', brandKey: 'trimrx', outputFolderId: 'TRIMRX_OUTPUT_FOLDER_ID', brandKitFolderId: 'TRIMRX_BRAND_KIT_FOLDER_ID', variation: v.variation, hook: v.hook, body: v.body, cta: v.cta, higgsfield_prompt: v.higgsfield_prompt, has_logo: meta.analysis.has_logo, has_product: meta.analysis.has_product_image, outputFileName: `trimrx_variation_${v.variation}.jpg` } }));"
+      },
+      "id": "45262daf-7bb0-42ab-a8f5-bd82c06202a9",
+      "name": "Split — TrimRx",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1552,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getAll"
+      },
+      "id": "824e844a-f559-4a65-93b6-e4b7eeebb3dd",
+      "name": "DM — Get Brand Kit",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1776,
+        176
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "wKQWDujEdP0JcFlv",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll"
+      },
+      "id": "b3b19ee4-7255-43a9-8380-d0189673cc11",
+      "name": "TR — Get Brand Kit",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1776,
+        784
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "wKQWDujEdP0JcFlv",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const files = $input.all();\nconst meta = $('Split — Direct Meds').item.json;\nlet logoUrl = null, productUrl = null;\nfor (const f of files) { const n = (f.json.name||'').toLowerCase(); if(n.includes('logo')) logoUrl=`https://drive.google.com/uc?export=download&id=${f.json.id}`; if(n.includes('product')) productUrl=`https://drive.google.com/uc?export=download&id=${f.json.id}`; }\nconst imagesList = [meta.imageUrl];\nif(meta.has_logo && logoUrl) imagesList.push(logoUrl);\nif(meta.has_product && productUrl) imagesList.push(productUrl);\nreturn [{ json: { ...meta, logoUrl, productUrl, imagesList } }];"
+      },
+      "id": "9712634b-0e61-40ee-bbe4-d689c94d01b8",
+      "name": "DM — Build Images List",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const files = $input.all();\nconst meta = $('Split — TrimRx').item.json;\nlet logoUrl = null, productUrl = null;\nfor (const f of files) { const n = (f.json.name||'').toLowerCase(); if(n.includes('logo')) logoUrl=`https://drive.google.com/uc?export=download&id=${f.json.id}`; if(n.includes('product')) productUrl=`https://drive.google.com/uc?export=download&id=${f.json.id}`; }\nconst imagesList = [meta.imageUrl];\nif(meta.has_logo && logoUrl) imagesList.push(logoUrl);\nif(meta.has_product && productUrl) imagesList.push(productUrl);\nreturn [{ json: { ...meta, logoUrl, productUrl, imagesList } }];"
+      },
+      "id": "db77221d-1603-45c3-97fa-b558f7b8fd7a",
+      "name": "TR — Build Images List",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://cloud.higgsfield.ai/api/v1/images/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_HIGGSFIELD_API_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"model\":\"nano-banana-2-edit\",\"images_list\":{{ JSON.stringify($json.imagesList) }},\"prompt\":\"{{ $json.higgsfield_prompt }} Hook overlay: '{{ $json.hook }}'. Body: '{{ $json.body }}'. CTA: '{{ $json.cta }}'. 4:5 aspect ratio. High quality ad creative.\",\"aspect_ratio\":\"4:5\",\"resolution\":\"2k\"}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "4be83768-5e1a-46d2-aa9b-3b339092b092",
+      "name": "DM — Higgsfield Generate",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2224,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://cloud.higgsfield.ai/api/v1/images/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_HIGGSFIELD_API_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"model\":\"nano-banana-2-edit\",\"images_list\":{{ JSON.stringify($json.imagesList) }},\"prompt\":\"{{ $json.higgsfield_prompt }} Hook overlay: '{{ $json.hook }}'. Body: '{{ $json.body }}'. CTA: '{{ $json.cta }}'. 4:5 aspect ratio. High quality ad creative.\",\"aspect_ratio\":\"4:5\",\"resolution\":\"2k\"}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "0e7015f6-b4c5-4ed7-9206-3d12845f8b57",
+      "name": "TR — Higgsfield Generate",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2224,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const r = $input.first().json;\nconst meta = $('DM — Build Images List').item.json;\nlet url = r.images?.[0]?.url || r.images?.[0] || r.output || r.url || null;\nif(!url) throw new Error('No image URL from Higgsfield: '+JSON.stringify(r).substring(0,200));\nreturn [{ json: { ...meta, generatedImageUrl: url } }];"
+      },
+      "id": "3be6f9bf-6355-46ff-87d1-3404f6208150",
+      "name": "DM — Extract Image URL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2432,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const r = $input.first().json;\nconst meta = $('TR — Build Images List').item.json;\nlet url = r.images?.[0]?.url || r.images?.[0] || r.output || r.url || null;\nif(!url) throw new Error('No image URL from Higgsfield: '+JSON.stringify(r).substring(0,200));\nreturn [{ json: { ...meta, generatedImageUrl: url } }];"
+      },
+      "id": "e9689562-c7d1-48ff-92dc-d98af5a2cc1e",
+      "name": "TR — Extract Image URL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2432,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.generatedImageUrl }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "d723d122-575e-474a-a49a-e5358290eb04",
+      "name": "DM — Download Image",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2656,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.generatedImageUrl }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "1cbb5eef-4ed7-41af-bfbe-310546c866d7",
+      "name": "TR — Download Image",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2656,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "createFolder"
+      },
+      "id": "2708e4ba-c114-466b-a449-ccef975e1ee9",
+      "name": "DM — Create Subfolder",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        2880,
+        176
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "wKQWDujEdP0JcFlv",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "createFolder"
+      },
+      "id": "a47cae11-1276-43f9-923c-325770321cd4",
+      "name": "TR — Create Subfolder",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        2880,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "name": "={{ $('DM — Extract Image URL').item.json.outputFileName }}",
+        "driveId": {
+          "__rl": true,
+          "value": "MyDrive",
+          "mode": "list"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "39a68610-fe3b-4e61-a91a-b67c4fc143d4",
+      "name": "DM — Upload Image",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        3104,
+        176
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "wKQWDujEdP0JcFlv",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "={{ $('TR — Extract Image URL').item.json.outputFileName }}",
+        "driveId": {
+          "__rl": true,
+          "value": "MyDrive",
+          "mode": "list"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "67f9fa34-3ba0-40c0-90cc-39e99c2a0cc6",
+      "name": "TR — Upload Image",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        3104,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge all 9 uploaded items and build doc content\nconst allItems = $input.all();\nconst first = $('Parse Ad Analysis1').first().json;\nconst now = new Date();\nconst timestamp = now.toLocaleString('en-US', { timeZone: 'America/New_York' });\n\nconst dmItems = $('DM — Extract Image URL').all();\nconst mvItems = $('MV — Extract Image URL').all();\nconst trItems = $('TR — Extract Image URL').all();\n\nlet doc = `GLP-1 AD CREATIVE BATCH\\nGenerated: ${timestamp}\\nSource: ${first.fileName}\\nOriginal Hook: ${first.analysis.hook}\\nAngle: ${first.analysis.ad_angle}\\n\\n${'='.repeat(60)}\\n\\n`;\n\nconst buildSection = (label, items) => {\n  let s = `${label}\\n${'─'.repeat(40)}\\n\\n`;\n  for (const item of items) {\n    s += `Variation ${item.json.variation}\\nHook: ${item.json.hook}\\nBody: ${item.json.body}\\nCTA: ${item.json.cta}\\nHiggsfield Prompt:\\n${item.json.higgsfield_prompt}\\nImage: ${item.json.generatedImageUrl}\\n\\n`;\n  }\n  return s;\n};\n\ndoc += buildSection('DIRECT MEDS', dmItems);\ndoc += buildSection('MEDVI', mvItems);\ndoc += buildSection('TRIMRX', trItems);\n\nreturn [{ json: { ...first, docContent: doc, timestamp, docTitle: `GLP-1 Creatives — ${first.folderName}` } }];"
+      },
+      "id": "1bcf9071-307a-414e-8cb9-ecb5496f4a8f",
+      "name": "Merge & Build Doc",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3312,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "WINNERS_FOLDER_ID",
+          "mode": "id"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "id": "e4341770-1470-4c01-a888-d608433e11cc",
+      "name": "Google Drive Trigger1",
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        16,
+        480
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "wKQWDujEdP0JcFlv",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "b198f256-04ce-488d-9b4b-b4b9a4409b3a",
+      "name": "Download Reference Image1",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        224,
+        480
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "wKQWDujEdP0JcFlv",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const file = $('Google Drive Trigger1').first().json;\nconst now = new Date();\nconst dateStr = now.toISOString().split('T')[0];\nconst fileName = file.name.replace(/\\.[^/.]+$/, '').replace(/[^a-zA-Z0-9-_]/g, '_');\nconst folderName = `${dateStr}_${fileName}`;\nconst imageUrl = `https://drive.google.com/uc?export=download&id=${file.id}`;\nreturn [{ json: { fileId: file.id, fileName: file.name, folderName, dateStr, imageUrl, mimeType: file.mimeType } }];"
+      },
+      "id": "5535bd71-6172-4c4c-b097-e5440a63a6af",
+      "name": "Extract File Metadata1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_OPENROUTER_API_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "HTTP-Referer",
+              "value": "https://growaiagency.io/"
+            },
+            {
+              "name": "X-Title",
+              "value": "GLP-1 Creative Agent"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"model\":\"anthropic/claude-opus-4-5\",\"max_tokens\":2000,\"messages\":[{\"role\":\"user\",\"content\":[{\"type\":\"image\",\"source\":{\"type\":\"url\",\"url\":\"{{ $json.imageUrl }}\"}},{\"type\":\"text\",\"text\":\"Analyze this GLP-1 ad and return ONLY valid JSON, no markdown:\\n{\\\"hook\\\":\\\"headline text\\\",\\\"body_copy\\\":\\\"body text\\\",\\\"cta\\\":\\\"cta text\\\",\\\"ad_angle\\\":\\\"transformation/fear/authority/social_proof/curiosity/urgency\\\",\\\"visual_style\\\":\\\"1 sentence description\\\",\\\"has_logo\\\":true or false,\\\"has_product_image\\\":true or false,\\\"target_audience\\\":\\\"description\\\",\\\"key_benefit\\\":\\\"main benefit\\\"}\"}]}]}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "00f91737-bdbb-430e-8631-84dc855229f6",
+      "name": "Claude — Analyze Ad1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        672,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst content = response.content[0].text;\nlet analysis;\ntry { analysis = JSON.parse(content.replace(/```json|```/g, '').trim()); }\ncatch(e) { analysis = { hook: 'Hook', body_copy: content, cta: 'Learn More', ad_angle: 'transformation', visual_style: 'clean modern', has_logo: false, has_product_image: false, target_audience: 'adults', key_benefit: 'weight loss' }; }\nconst meta = $('Extract File Metadata1').first().json;\nreturn [{ json: { ...meta, analysis } }];"
+      },
+      "id": "ffdc8cc2-728c-4a07-89fa-0c22862b6e49",
+      "name": "Parse Ad Analysis1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_OPENROUTER_API_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "HTTP-Referer",
+              "value": "https://growaiagency.io/"
+            },
+            {
+              "name": "X-Title",
+              "value": "GLP-1 Creative Agent"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"model\":\"anthropic/claude-opus-4-5\",\"max_tokens\":4000,\"messages\":[{\"role\":\"user\",\"content\":\"You are an expert direct response copywriter for GLP-1 weight loss ads.\\n\\nOriginal ad:\\nHook: {{ $json.analysis.hook }}\\nBody: {{ $json.analysis.body_copy }}\\nCTA: {{ $json.analysis.cta }}\\nAngle: {{ $json.analysis.ad_angle }}\\nBenefit: {{ $json.analysis.key_benefit }}\\nAudience: {{ $json.analysis.target_audience }}\\n\\nCreate 9 variations — 3 per brand. Each needs: hook (max 10 words), body (max 50 words), cta (max 5 words), higgsfield_prompt (detailed image gen prompt referencing visual style: {{ $json.analysis.visual_style }}, 4x5 ratio, brand appropriate).\\n\\nBRAND 1 - DIRECT MEDS: Prescription meds to door. Clinical, doctor-led tone. Adults 35-60.\\nBRAND 2 - MEDVI: Personalized GLP-1 plans, 24/7 support. Warm, supportive tone. Adults who tried everything.\\nBRAND 3 - TRIMRX: Affordable GLP-1 prescriptions. Bold, direct, value tone. Cost-conscious adults.\\n\\nReturn ONLY valid JSON:\\n{\\\"direct_meds\\\":[{\\\"variation\\\":1,\\\"hook\\\":\\\"\\\",\\\"body\\\":\\\"\\\",\\\"cta\\\":\\\"\\\",\\\"higgsfield_prompt\\\":\\\"\\\"},{\\\"variation\\\":2,\\\"hook\\\":\\\"\\\",\\\"body\\\":\\\"\\\",\\\"cta\\\":\\\"\\\",\\\"higgsfield_prompt\\\":\\\"\\\"},{\\\"variation\\\":3,\\\"hook\\\":\\\"\\\",\\\"body\\\":\\\"\\\",\\\"cta\\\":\\\"\\\",\\\"higgsfield_prompt\\\":\\\"\\\"}],\\\"medvi\\\":[{\\\"variation\\\":1,\\\"hook\\\":\\\"\\\",\\\"body\\\":\\\"\\\",\\\"cta\\\":\\\"\\\",\\\"higgsfield_prompt\\\":\\\"\\\"},{\\\"variation\\\":2,\\\"hook\\\":\\\"\\\",\\\"body\\\":\\\"\\\",\\\"cta\\\":\\\"\\\",\\\"higgsfield_prompt\\\":\\\"\\\"},{\\\"variation\\\":3,\\\"hook\\\":\\\"\\\",\\\"body\\\":\\\"\\\",\\\"cta\\\":\\\"\\\",\\\"higgsfield_prompt\\\":\\\"\\\"}],\\\"trimrx\\\":[{\\\"variation\\\":1,\\\"hook\\\":\\\"\\\",\\\"body\\\":\\\"\\\",\\\"cta\\\":\\\"\\\",\\\"higgsfield_prompt\\\":\\\"\\\"},{\\\"variation\\\":2,\\\"hook\\\":\\\"\\\",\\\"body\\\":\\\"\\\",\\\"cta\\\":\\\"\\\",\\\"higgsfield_prompt\\\":\\\"\\\"},{\\\"variation\\\":3,\\\"hook\\\":\\\"\\\",\\\"body\\\":\\\"\\\",\\\"cta\\\":\\\"\\\",\\\"higgsfield_prompt\\\":\\\"\\\"}]}\"}]}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "36780be0-6e4f-4020-a2cb-a6b4d508206c",
+      "name": "Claude — Generate 9 Variations1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1120,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "title": "={{ $json.docTitle }}"
+      },
+      "id": "d3ad0c90-04b0-4561-9a96-06b0b1f14adf",
+      "name": "Create Google Doc1",
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        3536,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "YOUR_EMAIL_HERE",
+        "subject": "=GLP-1 Creatives Ready — {{ $('Merge & Build Doc').first().json.folderName }}",
+        "message": "=<h2>New GLP-1 Ad Creatives Generated</h2><p><strong>Source:</strong> {{ $('Merge & Build Doc').first().json.fileName }}</p><p><strong>Generated:</strong> {{ $('Merge & Build Doc').first().json.timestamp }}</p><p><strong>Original Hook:</strong> {{ $('Merge & Build Doc').first().json.analysis.hook }}</p><p><strong>Angle:</strong> {{ $('Merge & Build Doc').first().json.analysis.ad_angle }}</p><hr><p>9 variations created — 3 each for Direct Meds, Medvi, and TrimRx</p><p><a href=\"https://docs.google.com/document/d/{{ $json.documentId }}\">View Google Doc</a></p>",
+        "options": {}
+      },
+      "id": "3a61877b-3136-4d55-b5c3-60e53858f7e6",
+      "name": "Send Email1",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        3760,
+        480
+      ],
+      "webhookId": "1ea33339-c25a-4daf-98ae-b58c6f5b0f5d"
+    },
+    {
+      "parameters": {
+        "operation": "move",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Extract File Metadata1').first().json.fileId }}",
+          "mode": "id"
+        },
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "PROCESSED_FOLDER_ID",
+          "mode": "id"
+        }
+      },
+      "id": "f27a9bb5-7da7-423f-8884-ad7a147b19cc",
+      "name": "Move to Processed1",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        3984,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const meta = $input.first().json;\nreturn meta.variations.medvi.map(v => ({ json: { ...meta, brand: 'Medvi', brandKey: 'medvi', outputFolderId: 'MEDVI_OUTPUT_FOLDER_ID', brandKitFolderId: 'MEDVI_BRAND_KIT_FOLDER_ID', variation: v.variation, hook: v.hook, body: v.body, cta: v.cta, higgsfield_prompt: v.higgsfield_prompt, has_logo: meta.analysis.has_logo, has_product: meta.analysis.has_product_image, outputFileName: `medvi_variation_${v.variation}.jpg` } }));"
+      },
+      "id": "dd9cc9a8-c767-4738-9500-75d6d975b06a",
+      "name": "Split — Medvi",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1552,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getAll"
+      },
+      "id": "e7c85198-19a4-41e1-8b41-e42fff6203b7",
+      "name": "MV — Get Brand Kit",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1776,
+        480
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "wKQWDujEdP0JcFlv",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const files = $input.all();\nconst meta = $('Split — Medvi').item.json;\nlet logoUrl = null, productUrl = null;\nfor (const f of files) { const n = (f.json.name||'').toLowerCase(); if(n.includes('logo')) logoUrl=`https://drive.google.com/uc?export=download&id=${f.json.id}`; if(n.includes('product')) productUrl=`https://drive.google.com/uc?export=download&id=${f.json.id}`; }\nconst imagesList = [meta.imageUrl];\nif(meta.has_logo && logoUrl) imagesList.push(logoUrl);\nif(meta.has_product && productUrl) imagesList.push(productUrl);\nreturn [{ json: { ...meta, logoUrl, productUrl, imagesList } }];"
+      },
+      "id": "c3e275b5-98bd-433a-a41a-e82499e09ae1",
+      "name": "MV — Build Images List",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://cloud.higgsfield.ai/api/v1/images/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_HIGGSFIELD_API_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"model\":\"nano-banana-2-edit\",\"images_list\":{{ JSON.stringify($json.imagesList) }},\"prompt\":\"{{ $json.higgsfield_prompt }} Hook overlay: '{{ $json.hook }}'. Body: '{{ $json.body }}'. CTA: '{{ $json.cta }}'. 4:5 aspect ratio. High quality ad creative.\",\"aspect_ratio\":\"4:5\",\"resolution\":\"2k\"}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "0d3d3800-de0d-48de-a7bb-7e7eaa027245",
+      "name": "MV — Higgsfield Generate",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2224,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const r = $input.first().json;\nconst meta = $('MV — Build Images List').item.json;\nlet url = r.images?.[0]?.url || r.images?.[0] || r.output || r.url || null;\nif(!url) throw new Error('No image URL from Higgsfield: '+JSON.stringify(r).substring(0,200));\nreturn [{ json: { ...meta, generatedImageUrl: url } }];"
+      },
+      "id": "8a0eab7e-ad40-46e6-a080-6fa4ec916a12",
+      "name": "MV — Extract Image URL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2432,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.generatedImageUrl }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "a2798ea3-49a9-439d-8aa5-104eb1a68317",
+      "name": "MV — Download Image",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2656,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "createFolder"
+      },
+      "id": "1907bf1e-ec7f-4422-9d18-a826de695e33",
+      "name": "MV — Create Subfolder",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        2880,
+        480
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "wKQWDujEdP0JcFlv",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "={{ $('MV — Extract Image URL').item.json.outputFileName }}",
+        "driveId": {
+          "__rl": true,
+          "value": "MyDrive",
+          "mode": "list"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "id": "34bd01ac-2306-46b9-98a0-c3a3e3aeb5a3",
+      "name": "MV — Upload Image",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        3104,
+        480
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "wKQWDujEdP0JcFlv",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## ⚙️ SETUP — Replace these placeholders before activating\n\n**Google Drive Folder IDs** (get from Drive URL):\n- `WINNERS_FOLDER_ID` — folder you drop winning ads into\n- `PROCESSED_FOLDER_ID` — where processed ads are archived\n- `DIRECT_MEDS_OUTPUT_FOLDER_ID` — DM creative outputs\n- `DIRECT_MEDS_BRAND_KIT_FOLDER_ID` — DM logos/product images\n- `MEDVI_OUTPUT_FOLDER_ID` — Medvi creative outputs\n- `MEDVI_BRAND_KIT_FOLDER_ID` — Medvi logos/product images\n- `TRIMRX_OUTPUT_FOLDER_ID` — TrimRx creative outputs\n- `TRIMRX_BRAND_KIT_FOLDER_ID` — TrimRx logos/product images\n\n**API Keys:**\n- `YOUR_OPENROUTER_API_KEY` — openrouter.ai → Keys\n- Update `HTTP-Referer` header to your domain or app name\n- `YOUR_HIGGSFIELD_API_KEY` — Higgsfield dashboard\n- `YOUR_EMAIL_HERE` — your notification email\n\n**Brand Kit folders** should contain files with 'logo' or 'product' in their filename.",
+        "height": 420,
+        "width": 520
+      },
+      "id": "1bd2a952-1ddd-4571-b23b-b69a581e64bf",
+      "name": "Setup Instructions",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Parse Variations": {
+      "main": [
+        [
+          {
+            "node": "Split — Direct Meds",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Split — TrimRx",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Split — Medvi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split — Direct Meds": {
+      "main": [
+        [
+          {
+            "node": "DM — Get Brand Kit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split — TrimRx": {
+      "main": [
+        [
+          {
+            "node": "TR — Get Brand Kit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DM — Get Brand Kit": {
+      "main": [
+        [
+          {
+            "node": "DM — Build Images List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TR — Get Brand Kit": {
+      "main": [
+        [
+          {
+            "node": "TR — Build Images List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DM — Build Images List": {
+      "main": [
+        [
+          {
+            "node": "DM — Higgsfield Generate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TR — Build Images List": {
+      "main": [
+        [
+          {
+            "node": "TR — Higgsfield Generate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DM — Higgsfield Generate": {
+      "main": [
+        [
+          {
+            "node": "DM — Extract Image URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TR — Higgsfield Generate": {
+      "main": [
+        [
+          {
+            "node": "TR — Extract Image URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DM — Extract Image URL": {
+      "main": [
+        [
+          {
+            "node": "DM — Download Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TR — Extract Image URL": {
+      "main": [
+        [
+          {
+            "node": "TR — Download Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DM — Download Image": {
+      "main": [
+        [
+          {
+            "node": "DM — Create Subfolder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TR — Download Image": {
+      "main": [
+        [
+          {
+            "node": "TR — Create Subfolder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DM — Create Subfolder": {
+      "main": [
+        [
+          {
+            "node": "DM — Upload Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TR — Create Subfolder": {
+      "main": [
+        [
+          {
+            "node": "TR — Upload Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DM — Upload Image": {
+      "main": [
+        [
+          {
+            "node": "Merge & Build Doc",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TR — Upload Image": {
+      "main": [
+        [
+          {
+            "node": "Merge & Build Doc",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge & Build Doc": {
+      "main": [
+        [
+          {
+            "node": "Create Google Doc1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Download Reference Image1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Reference Image1": {
+      "main": [
+        [
+          {
+            "node": "Extract File Metadata1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract File Metadata1": {
+      "main": [
+        [
+          {
+            "node": "Claude — Analyze Ad1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude — Analyze Ad1": {
+      "main": [
+        [
+          {
+            "node": "Parse Ad Analysis1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Ad Analysis1": {
+      "main": [
+        [
+          {
+            "node": "Claude — Generate 9 Variations1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude — Generate 9 Variations1": {
+      "main": [
+        [
+          {
+            "node": "Parse Variations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Google Doc1": {
+      "main": [
+        [
+          {
+            "node": "Send Email1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email1": {
+      "main": [
+        [
+          {
+            "node": "Move to Processed1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split — Medvi": {
+      "main": [
+        [
+          {
+            "node": "MV — Get Brand Kit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MV — Get Brand Kit": {
+      "main": [
+        [
+          {
+            "node": "MV — Build Images List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MV — Build Images List": {
+      "main": [
+        [
+          {
+            "node": "MV — Higgsfield Generate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MV — Higgsfield Generate": {
+      "main": [
+        [
+          {
+            "node": "MV — Extract Image URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MV — Extract Image URL": {
+      "main": [
+        [
+          {
+            "node": "MV — Download Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MV — Download Image": {
+      "main": [
+        [
+          {
+            "node": "MV — Create Subfolder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MV — Create Subfolder": {
+      "main": [
+        [
+          {
+            "node": "MV — Upload Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MV — Upload Image": {
+      "main": [
+        [
+          {
+            "node": "Merge & Build Doc",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "6fd07f32-2ffe-4689-a302-e8530cca365c",
+  "meta": {
+    "instanceId": "f11bdee05efa5d90b606551f8531ff2b8a59022134f660a3d83205c5ea9a2276"
+  },
+  "id": "CWtb6H3P7iErNPwN",
+  "tags": []
+}

@@ -571,7 +571,12 @@
     },
     {
       "parameters": {
-        "title": "={{ $json.docTitle }}"
+        "title": "={{ $json.docTitle }}",
+        "folderId": {
+          "__rl": true,
+          "value": "DOCS_OUTPUT_FOLDER_ID",
+          "mode": "id"
+        }
       },
       "id": "d3ad0c90-04b0-4561-9a96-06b0b1f14adf",
       "name": "Create Google Doc1",

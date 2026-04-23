@@ -3,7 +3,7 @@
   "nodes": [
     {
       "parameters": {
-        "jsCode": "const response = $input.first().json;\nconst content = response.content[0].text;\nlet variations;\ntry { variations = JSON.parse(content.replace(/```json|```/g, '').trim()); }\ncatch(e) { throw new Error('Failed to parse: ' + content.substring(0,200)); }\nconst meta = $('Parse Ad Analysis1').first().json;\nreturn [{ json: { ...meta, variations } }];"
+        "jsCode": "const response = $input.first().json;\nconst content = response.choices[0].message.content;\nlet variations;\ntry { variations = JSON.parse(content.replace(/```json|```/g, '').trim()); }\ncatch(e) { throw new Error('Failed to parse: ' + content.substring(0,200)); }\nconst meta = $('Parse Ad Analysis1').first().json;\nreturn [{ json: { ...meta, variations } }];"
       },
       "id": "e1f85952-cd37-429f-aef4-347225299d6c",
       "name": "Parse Variations",
@@ -42,12 +42,33 @@
     },
     {
       "parameters": {
-        "operation": "getAll"
+        "method": "GET",
+        "url": "https://www.googleapis.com/drive/v3/files",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ \"'\" + $json.brandKitFolderId + \"' in parents and trashed=false\" }}"
+            },
+            {
+              "name": "fields",
+              "value": "files(id,name,mimeType)"
+            },
+            {
+              "name": "pageSize",
+              "value": "100"
+            }
+          ]
+        },
+        "options": {}
       },
       "id": "824e844a-f559-4a65-93b6-e4b7eeebb3dd",
       "name": "DM — Get Brand Kit",
-      "type": "n8n-nodes-base.googleDrive",
-      "typeVersion": 3,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
       "position": [
         1776,
         176
@@ -61,12 +82,33 @@
     },
     {
       "parameters": {
-        "operation": "getAll"
+        "method": "GET",
+        "url": "https://www.googleapis.com/drive/v3/files",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ \"'\" + $json.brandKitFolderId + \"' in parents and trashed=false\" }}"
+            },
+            {
+              "name": "fields",
+              "value": "files(id,name,mimeType)"
+            },
+            {
+              "name": "pageSize",
+              "value": "100"
+            }
+          ]
+        },
+        "options": {}
       },
       "id": "b3b19ee4-7255-43a9-8380-d0189673cc11",
       "name": "TR — Get Brand Kit",
-      "type": "n8n-nodes-base.googleDrive",
-      "typeVersion": 3,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
       "position": [
         1776,
         784
@@ -80,7 +122,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const files = $input.all();\nconst meta = $('Split — Direct Meds').item.json;\nlet logoUrl = null, productUrl = null;\nfor (const f of files) { const n = (f.json.name||'').toLowerCase(); if(n.includes('logo')) logoUrl=`https://drive.google.com/uc?export=download&id=${f.json.id}`; if(n.includes('product')) productUrl=`https://drive.google.com/uc?export=download&id=${f.json.id}`; }\nconst imagesList = [meta.imageUrl];\nif(meta.has_logo && logoUrl) imagesList.push(logoUrl);\nif(meta.has_product && productUrl) imagesList.push(productUrl);\nreturn [{ json: { ...meta, logoUrl, productUrl, imagesList } }];"
+        "jsCode": "const response = $input.first().json;\nconst files = response.files || [];\nconst meta = $('Split — Direct Meds').item.json;\nlet logoUrl = null, productUrl = null;\nfor (const f of files) {\n  const n = (f.name||'').toLowerCase();\n  if(n.includes('logo')) logoUrl=`https://drive.google.com/uc?export=download&id=${f.id}`;\n  if(n.includes('product')) productUrl=`https://drive.google.com/uc?export=download&id=${f.id}`;\n}\nconst imagesList = [meta.imageUrl];\nif(meta.has_logo && logoUrl) imagesList.push(logoUrl);\nif(meta.has_product && productUrl) imagesList.push(productUrl);\nreturn [{ json: { ...meta, logoUrl, productUrl, imagesList } }];"
       },
       "id": "9712634b-0e61-40ee-bbe4-d689c94d01b8",
       "name": "DM — Build Images List",
@@ -93,7 +135,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const files = $input.all();\nconst meta = $('Split — TrimRx').item.json;\nlet logoUrl = null, productUrl = null;\nfor (const f of files) { const n = (f.json.name||'').toLowerCase(); if(n.includes('logo')) logoUrl=`https://drive.google.com/uc?export=download&id=${f.json.id}`; if(n.includes('product')) productUrl=`https://drive.google.com/uc?export=download&id=${f.json.id}`; }\nconst imagesList = [meta.imageUrl];\nif(meta.has_logo && logoUrl) imagesList.push(logoUrl);\nif(meta.has_product && productUrl) imagesList.push(productUrl);\nreturn [{ json: { ...meta, logoUrl, productUrl, imagesList } }];"
+        "jsCode": "const response = $input.first().json;\nconst files = response.files || [];\nconst meta = $('Split — TrimRx').item.json;\nlet logoUrl = null, productUrl = null;\nfor (const f of files) {\n  const n = (f.name||'').toLowerCase();\n  if(n.includes('logo')) logoUrl=`https://drive.google.com/uc?export=download&id=${f.id}`;\n  if(n.includes('product')) productUrl=`https://drive.google.com/uc?export=download&id=${f.id}`;\n}\nconst imagesList = [meta.imageUrl];\nif(meta.has_logo && logoUrl) imagesList.push(logoUrl);\nif(meta.has_product && productUrl) imagesList.push(productUrl);\nreturn [{ json: { ...meta, logoUrl, productUrl, imagesList } }];"
       },
       "id": "db77221d-1603-45c3-97fa-b558f7b8fd7a",
       "name": "TR — Build Images List",
@@ -238,7 +280,21 @@
     },
     {
       "parameters": {
-        "operation": "createFolder"
+        "resource": "folder",
+        "operation": "create",
+        "name": "={{ $('DM — Build Images List').item.json.folderName }}",
+        "driveId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('DM — Build Images List').item.json.outputFolderId }}",
+          "mode": "id"
+        },
+        "options": {}
       },
       "id": "2708e4ba-c114-466b-a449-ccef975e1ee9",
       "name": "DM — Create Subfolder",
@@ -257,7 +313,21 @@
     },
     {
       "parameters": {
-        "operation": "createFolder"
+        "resource": "folder",
+        "operation": "create",
+        "name": "={{ $('TR — Build Images List').item.json.folderName }}",
+        "driveId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('TR — Build Images List').item.json.outputFolderId }}",
+          "mode": "id"
+        },
+        "options": {}
       },
       "id": "a47cae11-1276-43f9-923c-325770321cd4",
       "name": "TR — Create Subfolder",
@@ -395,7 +465,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const file = $('Google Drive Trigger1').first().json;\nconst now = new Date();\nconst dateStr = now.toISOString().split('T')[0];\nconst fileName = file.name.replace(/\\.[^/.]+$/, '').replace(/[^a-zA-Z0-9-_]/g, '_');\nconst folderName = `${dateStr}_${fileName}`;\nconst imageUrl = `https://drive.google.com/uc?export=download&id=${file.id}`;\nreturn [{ json: { fileId: file.id, fileName: file.name, folderName, dateStr, imageUrl, mimeType: file.mimeType } }];"
+        "jsCode": "const file = $('Google Drive Trigger1').first().json;\nconst now = new Date();\nconst dateStr = now.toISOString().split('T')[0];\nconst fileName = file.name.replace(/\\.[^/.]+$/, '').replace(/[^a-zA-Z0-9-_]/g, '_');\nconst folderName = `${dateStr}_${fileName}`;\nconst imageUrl = `https://drive.google.com/uc?export=download&id=${file.id}`;\nconst binary = $('Download Reference Image1').first().binary;\nconst imageMimeType = binary?.data?.mimeType || file.mimeType || 'image/jpeg';\nconst imageBase64 = binary?.data?.data || '';\nreturn [{ json: { fileId: file.id, fileName: file.name, folderName, dateStr, imageUrl, imageBase64, imageMimeType } }];"
       },
       "id": "5535bd71-6172-4c4c-b097-e5440a63a6af",
       "name": "Extract File Metadata1",
@@ -432,11 +502,11 @@
           ]
         },
         "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\"model\":\"anthropic/claude-opus-4-5\",\"max_tokens\":2000,\"messages\":[{\"role\":\"user\",\"content\":[{\"type\":\"image\",\"source\":{\"type\":\"url\",\"url\":\"{{ $json.imageUrl }}\"}},{\"type\":\"text\",\"text\":\"Analyze this GLP-1 ad and return ONLY valid JSON, no markdown:\\n{\\\"hook\\\":\\\"headline text\\\",\\\"body_copy\\\":\\\"body text\\\",\\\"cta\\\":\\\"cta text\\\",\\\"ad_angle\\\":\\\"transformation/fear/authority/social_proof/curiosity/urgency\\\",\\\"visual_style\\\":\\\"1 sentence description\\\",\\\"has_logo\\\":true or false,\\\"has_product_image\\\":true or false,\\\"target_audience\\\":\\\"description\\\",\\\"key_benefit\\\":\\\"main benefit\\\"}\"}]}]}",
+        "specifyBody": "string",
         "options": {
           "timeout": 60000
-        }
+        },
+        "body": "={{ JSON.stringify({model:\"anthropic/claude-opus-4-5\",max_tokens:2000,messages:[{role:\"user\",content:[{type:\"image\",source:{type:\"base64\",media_type:$json.imageMimeType,data:$json.imageBase64}},{type:\"text\",text:\"Analyze this GLP-1 ad and return ONLY valid JSON, no markdown:\\n{\\\"hook\\\":\\\"headline text\\\",\\\"body_copy\\\":\\\"body text\\\",\\\"cta\\\":\\\"cta text\\\",\\\"ad_angle\\\":\\\"transformation/fear/authority/social_proof/curiosity/urgency\\\",\\\"visual_style\\\":\\\"1 sentence description\\\",\\\"has_logo\\\":true,\\\"has_product_image\\\":true,\\\"target_audience\\\":\\\"description\\\",\\\"key_benefit\\\":\\\"main benefit\\\"}\"}]}]}) }}"
       },
       "id": "00f91737-bdbb-430e-8631-84dc855229f6",
       "name": "Claude — Analyze Ad1",
@@ -449,7 +519,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const response = $input.first().json;\nconst content = response.content[0].text;\nlet analysis;\ntry { analysis = JSON.parse(content.replace(/```json|```/g, '').trim()); }\ncatch(e) { analysis = { hook: 'Hook', body_copy: content, cta: 'Learn More', ad_angle: 'transformation', visual_style: 'clean modern', has_logo: false, has_product_image: false, target_audience: 'adults', key_benefit: 'weight loss' }; }\nconst meta = $('Extract File Metadata1').first().json;\nreturn [{ json: { ...meta, analysis } }];"
+        "jsCode": "const response = $input.first().json;\nconst content = response.choices[0].message.content;\nlet analysis;\ntry { analysis = JSON.parse(content.replace(/```json|```/g, '').trim()); }\ncatch(e) { analysis = { hook: 'Hook', body_copy: content, cta: 'Learn More', ad_angle: 'transformation', visual_style: 'clean modern', has_logo: false, has_product_image: false, target_audience: 'adults', key_benefit: 'weight loss' }; }\nconst meta = $('Extract File Metadata1').first().json;\nreturn [{ json: { ...meta, analysis } }];"
       },
       "id": "ffdc8cc2-728c-4a07-89fa-0c22862b6e49",
       "name": "Parse Ad Analysis1",
@@ -486,11 +556,11 @@
           ]
         },
         "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\"model\":\"anthropic/claude-opus-4-5\",\"max_tokens\":4000,\"messages\":[{\"role\":\"user\",\"content\":\"You are an expert direct response copywriter for GLP-1 weight loss ads.\\n\\nOriginal ad:\\nHook: {{ $json.analysis.hook }}\\nBody: {{ $json.analysis.body_copy }}\\nCTA: {{ $json.analysis.cta }}\\nAngle: {{ $json.analysis.ad_angle }}\\nBenefit: {{ $json.analysis.key_benefit }}\\nAudience: {{ $json.analysis.target_audience }}\\n\\nCreate 9 variations — 3 per brand. Each needs: hook (max 10 words), body (max 50 words), cta (max 5 words), higgsfield_prompt (detailed image gen prompt referencing visual style: {{ $json.analysis.visual_style }}, 4x5 ratio, brand appropriate).\\n\\nBRAND 1 - DIRECT MEDS: Prescription meds to door. Clinical, doctor-led tone. Adults 35-60.\\nBRAND 2 - MEDVI: Personalized GLP-1 plans, 24/7 support. Warm, supportive tone. Adults who tried everything.\\nBRAND 3 - TRIMRX: Affordable GLP-1 prescriptions. Bold, direct, value tone. Cost-conscious adults.\\n\\nReturn ONLY valid JSON:\\n{\\\"direct_meds\\\":[{\\\"variation\\\":1,\\\"hook\\\":\\\"\\\",\\\"body\\\":\\\"\\\",\\\"cta\\\":\\\"\\\",\\\"higgsfield_prompt\\\":\\\"\\\"},{\\\"variation\\\":2,\\\"hook\\\":\\\"\\\",\\\"body\\\":\\\"\\\",\\\"cta\\\":\\\"\\\",\\\"higgsfield_prompt\\\":\\\"\\\"},{\\\"variation\\\":3,\\\"hook\\\":\\\"\\\",\\\"body\\\":\\\"\\\",\\\"cta\\\":\\\"\\\",\\\"higgsfield_prompt\\\":\\\"\\\"}],\\\"medvi\\\":[{\\\"variation\\\":1,\\\"hook\\\":\\\"\\\",\\\"body\\\":\\\"\\\",\\\"cta\\\":\\\"\\\",\\\"higgsfield_prompt\\\":\\\"\\\"},{\\\"variation\\\":2,\\\"hook\\\":\\\"\\\",\\\"body\\\":\\\"\\\",\\\"cta\\\":\\\"\\\",\\\"higgsfield_prompt\\\":\\\"\\\"},{\\\"variation\\\":3,\\\"hook\\\":\\\"\\\",\\\"body\\\":\\\"\\\",\\\"cta\\\":\\\"\\\",\\\"higgsfield_prompt\\\":\\\"\\\"}],\\\"trimrx\\\":[{\\\"variation\\\":1,\\\"hook\\\":\\\"\\\",\\\"body\\\":\\\"\\\",\\\"cta\\\":\\\"\\\",\\\"higgsfield_prompt\\\":\\\"\\\"},{\\\"variation\\\":2,\\\"hook\\\":\\\"\\\",\\\"body\\\":\\\"\\\",\\\"cta\\\":\\\"\\\",\\\"higgsfield_prompt\\\":\\\"\\\"},{\\\"variation\\\":3,\\\"hook\\\":\\\"\\\",\\\"body\\\":\\\"\\\",\\\"cta\\\":\\\"\\\",\\\"higgsfield_prompt\\\":\\\"\\\"}]}\"}]}",
+        "specifyBody": "string",
         "options": {
           "timeout": 120000
-        }
+        },
+        "body": "={{ $json.requestBody }}"
       },
       "id": "36780be0-6e4f-4020-a2cb-a6b4d508206c",
       "name": "Claude — Generate 9 Variations1",
@@ -503,7 +573,12 @@
     },
     {
       "parameters": {
-        "title": "={{ $json.docTitle }}"
+        "title": "={{ $json.docTitle }}",
+        "folderId": {
+          "__rl": true,
+          "value": "DOCS_OUTPUT_FOLDER_ID",
+          "mode": "id"
+        }
       },
       "id": "d3ad0c90-04b0-4561-9a96-06b0b1f14adf",
       "name": "Create Google Doc1",
@@ -574,12 +649,33 @@
     },
     {
       "parameters": {
-        "operation": "getAll"
+        "method": "GET",
+        "url": "https://www.googleapis.com/drive/v3/files",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ \"'\" + $json.brandKitFolderId + \"' in parents and trashed=false\" }}"
+            },
+            {
+              "name": "fields",
+              "value": "files(id,name,mimeType)"
+            },
+            {
+              "name": "pageSize",
+              "value": "100"
+            }
+          ]
+        },
+        "options": {}
       },
       "id": "e7c85198-19a4-41e1-8b41-e42fff6203b7",
       "name": "MV — Get Brand Kit",
-      "type": "n8n-nodes-base.googleDrive",
-      "typeVersion": 3,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
       "position": [
         1776,
         480
@@ -593,7 +689,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const files = $input.all();\nconst meta = $('Split — Medvi').item.json;\nlet logoUrl = null, productUrl = null;\nfor (const f of files) { const n = (f.json.name||'').toLowerCase(); if(n.includes('logo')) logoUrl=`https://drive.google.com/uc?export=download&id=${f.json.id}`; if(n.includes('product')) productUrl=`https://drive.google.com/uc?export=download&id=${f.json.id}`; }\nconst imagesList = [meta.imageUrl];\nif(meta.has_logo && logoUrl) imagesList.push(logoUrl);\nif(meta.has_product && productUrl) imagesList.push(productUrl);\nreturn [{ json: { ...meta, logoUrl, productUrl, imagesList } }];"
+        "jsCode": "const response = $input.first().json;\nconst files = response.files || [];\nconst meta = $('Split — Medvi').item.json;\nlet logoUrl = null, productUrl = null;\nfor (const f of files) {\n  const n = (f.name||'').toLowerCase();\n  if(n.includes('logo')) logoUrl=`https://drive.google.com/uc?export=download&id=${f.id}`;\n  if(n.includes('product')) productUrl=`https://drive.google.com/uc?export=download&id=${f.id}`;\n}\nconst imagesList = [meta.imageUrl];\nif(meta.has_logo && logoUrl) imagesList.push(logoUrl);\nif(meta.has_product && productUrl) imagesList.push(productUrl);\nreturn [{ json: { ...meta, logoUrl, productUrl, imagesList } }];"
       },
       "id": "c3e275b5-98bd-433a-a41a-e82499e09ae1",
       "name": "MV — Build Images List",
@@ -672,7 +768,21 @@
     },
     {
       "parameters": {
-        "operation": "createFolder"
+        "resource": "folder",
+        "operation": "create",
+        "name": "={{ $('MV — Build Images List').item.json.folderName }}",
+        "driveId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('MV — Build Images List').item.json.outputFolderId }}",
+          "mode": "id"
+        },
+        "options": {}
       },
       "id": "1907bf1e-ec7f-4422-9d18-a826de695e33",
       "name": "MV — Create Subfolder",
@@ -732,6 +842,19 @@
       "position": [
         0,
         0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const a = $json.analysis;\nconst template = {direct_meds:[{variation:1,hook:'',body:'',cta:'',higgsfield_prompt:''},{variation:2,hook:'',body:'',cta:'',higgsfield_prompt:''},{variation:3,hook:'',body:'',cta:'',higgsfield_prompt:''}],medvi:[{variation:1,hook:'',body:'',cta:'',higgsfield_prompt:''},{variation:2,hook:'',body:'',cta:'',higgsfield_prompt:''},{variation:3,hook:'',body:'',cta:'',higgsfield_prompt:''}],trimrx:[{variation:1,hook:'',body:'',cta:'',higgsfield_prompt:''},{variation:2,hook:'',body:'',cta:'',higgsfield_prompt:''},{variation:3,hook:'',body:'',cta:'',higgsfield_prompt:''}]};\nconst prompt = `You are an expert direct response copywriter for GLP-1 weight loss ads.\\n\\nOriginal ad:\\nHook: ${a.hook}\\nBody: ${a.body_copy}\\nCTA: ${a.cta}\\nAngle: ${a.ad_angle}\\nBenefit: ${a.key_benefit}\\nAudience: ${a.target_audience}\\n\\nCreate 9 variations \\u2014 3 per brand. Each needs: hook (max 10 words), body (max 50 words), cta (max 5 words), higgsfield_prompt (detailed image gen prompt referencing visual style: ${a.visual_style}, 4x5 ratio, brand appropriate).\\n\\nBRAND 1 - DIRECT MEDS: Prescription meds to door. Clinical, doctor-led tone. Adults 35-60.\\nBRAND 2 - MEDVI: Personalized GLP-1 plans, 24/7 support. Warm, supportive tone. Adults who tried everything.\\nBRAND 3 - TRIMRX: Affordable GLP-1 prescriptions. Bold, direct, value tone. Cost-conscious adults.\\n\\nReturn ONLY valid JSON:\\n${JSON.stringify(template)}`;\nconst requestBody = JSON.stringify({model:'anthropic/claude-opus-4-5',max_tokens:4000,messages:[{role:'user',content:prompt}]});\nreturn [{ json: { ...$json, requestBody } }];"
+      },
+      "id": "a16af245-835f-43d1-981b-0770c49a2ecf",
+      "name": "Build Variations Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        944,
+        480
       ]
     }
   ],
@@ -993,7 +1116,7 @@
       "main": [
         [
           {
-            "node": "Claude — Generate 9 Variations1",
+            "node": "Build Variations Payload",
             "type": "main",
             "index": 0
           }
@@ -1115,6 +1238,17 @@
         [
           {
             "node": "Merge & Build Doc",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Variations Payload": {
+      "main": [
+        [
+          {
+            "node": "Claude — Generate 9 Variations1",
             "type": "main",
             "index": 0
           }

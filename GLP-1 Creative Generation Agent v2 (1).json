@@ -465,7 +465,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const file = $('Google Drive Trigger1').first().json;\nconst now = new Date();\nconst dateStr = now.toISOString().split('T')[0];\nconst fileName = file.name.replace(/\\.[^/.]+$/, '').replace(/[^a-zA-Z0-9-_]/g, '_');\nconst folderName = `${dateStr}_${fileName}`;\nconst imageUrl = `https://drive.google.com/uc?export=download&id=${file.id}`;\nreturn [{ json: { fileId: file.id, fileName: file.name, folderName, dateStr, imageUrl, mimeType: file.mimeType } }];"
+        "jsCode": "const file = $('Google Drive Trigger1').first().json;\nconst now = new Date();\nconst dateStr = now.toISOString().split('T')[0];\nconst fileName = file.name.replace(/\\.[^/.]+$/, '').replace(/[^a-zA-Z0-9-_]/g, '_');\nconst folderName = `${dateStr}_${fileName}`;\nconst imageUrl = `https://drive.google.com/uc?export=download&id=${file.id}`;\nconst binary = $('Download Reference Image1').first().binary;\nconst mimeType = binary?.data?.mimeType || file.mimeType || 'image/jpeg';\nconst base64Data = binary?.data?.data || '';\nconst imageDataUrl = base64Data ? `data:${mimeType};base64,${base64Data}` : imageUrl;\nreturn [{ json: { fileId: file.id, fileName: file.name, folderName, dateStr, imageUrl, imageDataUrl, mimeType } }];"
       },
       "id": "5535bd71-6172-4c4c-b097-e5440a63a6af",
       "name": "Extract File Metadata1",
@@ -503,7 +503,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\"model\": \"anthropic/claude-opus-4-5\", \"max_tokens\": 2000, \"messages\": [{\"role\": \"user\", \"content\": [{\"type\": \"image_url\", \"image_url\": {\"url\": \"={{ $json.imageUrl }}\"}}, {\"type\": \"text\", \"text\": \"Analyze this GLP-1 ad and return ONLY valid JSON, no markdown:\\n{\\\"hook\\\":\\\"headline text\\\",\\\"body_copy\\\":\\\"body text\\\",\\\"cta\\\":\\\"cta text\\\",\\\"ad_angle\\\":\\\"transformation/fear/authority/social_proof/curiosity/urgency\\\",\\\"visual_style\\\":\\\"1 sentence description\\\",\\\"has_logo\\\":true or false,\\\"has_product_image\\\":true or false,\\\"target_audience\\\":\\\"description\\\",\\\"key_benefit\\\":\\\"main benefit\\\"}\"}]}]}",
+        "jsonBody": "={\"model\": \"anthropic/claude-opus-4-5\", \"max_tokens\": 2000, \"messages\": [{\"role\": \"user\", \"content\": [{\"type\": \"image_url\", \"image_url\": {\"url\": \"={{ $json.imageDataUrl }}\"}}, {\"type\": \"text\", \"text\": \"Analyze this GLP-1 ad and return ONLY valid JSON, no markdown:\\n{\\\"hook\\\":\\\"headline text\\\",\\\"body_copy\\\":\\\"body text\\\",\\\"cta\\\":\\\"cta text\\\",\\\"ad_angle\\\":\\\"transformation/fear/authority/social_proof/curiosity/urgency\\\",\\\"visual_style\\\":\\\"1 sentence description\\\",\\\"has_logo\\\":true or false,\\\"has_product_image\\\":true or false,\\\"target_audience\\\":\\\"description\\\",\\\"key_benefit\\\":\\\"main benefit\\\"}\"}]}]}",
         "options": {
           "timeout": 60000
         }

@@ -42,7 +42,19 @@
     },
     {
       "parameters": {
-        "operation": "getAll"
+        "operation": "getAll",
+        "driveId": {
+          "__rl": true,
+          "value": "MyDrive",
+          "mode": "list",
+          "cachedResultName": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $json.brandKitFolderId }}",
+          "mode": "id"
+        },
+        "options": {}
       },
       "id": "824e844a-f559-4a65-93b6-e4b7eeebb3dd",
       "name": "DM — Get Brand Kit",
@@ -61,7 +73,19 @@
     },
     {
       "parameters": {
-        "operation": "getAll"
+        "operation": "getAll",
+        "driveId": {
+          "__rl": true,
+          "value": "MyDrive",
+          "mode": "list",
+          "cachedResultName": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $json.brandKitFolderId }}",
+          "mode": "id"
+        },
+        "options": {}
       },
       "id": "b3b19ee4-7255-43a9-8380-d0189673cc11",
       "name": "TR — Get Brand Kit",
@@ -238,7 +262,20 @@
     },
     {
       "parameters": {
-        "operation": "createFolder"
+        "operation": "createFolder",
+        "name": "={{ $('DM — Extract Image URL').item.json.folderName }}",
+        "driveId": {
+          "__rl": true,
+          "value": "MyDrive",
+          "mode": "list",
+          "cachedResultName": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('DM — Extract Image URL').item.json.outputFolderId }}",
+          "mode": "id"
+        },
+        "options": {}
       },
       "id": "2708e4ba-c114-466b-a449-ccef975e1ee9",
       "name": "DM — Create Subfolder",
@@ -257,7 +294,20 @@
     },
     {
       "parameters": {
-        "operation": "createFolder"
+        "operation": "createFolder",
+        "name": "={{ $('TR — Extract Image URL').item.json.folderName }}",
+        "driveId": {
+          "__rl": true,
+          "value": "MyDrive",
+          "mode": "list",
+          "cachedResultName": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('TR — Extract Image URL').item.json.outputFolderId }}",
+          "mode": "id"
+        },
+        "options": {}
       },
       "id": "a47cae11-1276-43f9-923c-325770321cd4",
       "name": "TR — Create Subfolder",
@@ -574,7 +624,19 @@
     },
     {
       "parameters": {
-        "operation": "getAll"
+        "operation": "getAll",
+        "driveId": {
+          "__rl": true,
+          "value": "MyDrive",
+          "mode": "list",
+          "cachedResultName": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $json.brandKitFolderId }}",
+          "mode": "id"
+        },
+        "options": {}
       },
       "id": "e7c85198-19a4-41e1-8b41-e42fff6203b7",
       "name": "MV — Get Brand Kit",
@@ -672,7 +734,20 @@
     },
     {
       "parameters": {
-        "operation": "createFolder"
+        "operation": "createFolder",
+        "name": "={{ $('MV — Extract Image URL').item.json.folderName }}",
+        "driveId": {
+          "__rl": true,
+          "value": "MyDrive",
+          "mode": "list",
+          "cachedResultName": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $('MV — Extract Image URL').item.json.outputFolderId }}",
+          "mode": "id"
+        },
+        "options": {}
       },
       "id": "1907bf1e-ec7f-4422-9d18-a826de695e33",
       "name": "MV — Create Subfolder",

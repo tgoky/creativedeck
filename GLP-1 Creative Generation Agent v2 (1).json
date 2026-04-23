@@ -42,24 +42,33 @@
     },
     {
       "parameters": {
-        "operation": "getAll",
-        "driveId": {
-          "__rl": true,
-          "value": "",
-          "mode": "list",
-          "cachedResultName": "My Drive"
-        },
-        "folderId": {
-          "__rl": true,
-          "value": "={{ $json.brandKitFolderId }}",
-          "mode": "id"
+        "method": "GET",
+        "url": "https://www.googleapis.com/drive/v3/files",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ \"'\" + $json.brandKitFolderId + \"' in parents and trashed=false\" }}"
+            },
+            {
+              "name": "fields",
+              "value": "files(id,name,mimeType)"
+            },
+            {
+              "name": "pageSize",
+              "value": "100"
+            }
+          ]
         },
         "options": {}
       },
       "id": "824e844a-f559-4a65-93b6-e4b7eeebb3dd",
       "name": "DM — Get Brand Kit",
-      "type": "n8n-nodes-base.googleDrive",
-      "typeVersion": 3,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
       "position": [
         1776,
         176
@@ -73,24 +82,33 @@
     },
     {
       "parameters": {
-        "operation": "getAll",
-        "driveId": {
-          "__rl": true,
-          "value": "",
-          "mode": "list",
-          "cachedResultName": "My Drive"
-        },
-        "folderId": {
-          "__rl": true,
-          "value": "={{ $json.brandKitFolderId }}",
-          "mode": "id"
+        "method": "GET",
+        "url": "https://www.googleapis.com/drive/v3/files",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ \"'\" + $json.brandKitFolderId + \"' in parents and trashed=false\" }}"
+            },
+            {
+              "name": "fields",
+              "value": "files(id,name,mimeType)"
+            },
+            {
+              "name": "pageSize",
+              "value": "100"
+            }
+          ]
         },
         "options": {}
       },
       "id": "b3b19ee4-7255-43a9-8380-d0189673cc11",
       "name": "TR — Get Brand Kit",
-      "type": "n8n-nodes-base.googleDrive",
-      "typeVersion": 3,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
       "position": [
         1776,
         784
@@ -104,7 +122,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const files = $input.all();\nconst meta = $('Split — Direct Meds').item.json;\nlet logoUrl = null, productUrl = null;\nfor (const f of files) { const n = (f.json.name||'').toLowerCase(); if(n.includes('logo')) logoUrl=`https://drive.google.com/uc?export=download&id=${f.json.id}`; if(n.includes('product')) productUrl=`https://drive.google.com/uc?export=download&id=${f.json.id}`; }\nconst imagesList = [meta.imageUrl];\nif(meta.has_logo && logoUrl) imagesList.push(logoUrl);\nif(meta.has_product && productUrl) imagesList.push(productUrl);\nreturn [{ json: { ...meta, logoUrl, productUrl, imagesList } }];"
+        "jsCode": "const response = $input.first().json;\nconst files = response.files || [];\nconst meta = $('Split — Direct Meds').item.json;\nlet logoUrl = null, productUrl = null;\nfor (const f of files) {\n  const n = (f.name||'').toLowerCase();\n  if(n.includes('logo')) logoUrl=`https://drive.google.com/uc?export=download&id=${f.id}`;\n  if(n.includes('product')) productUrl=`https://drive.google.com/uc?export=download&id=${f.id}`;\n}\nconst imagesList = [meta.imageUrl];\nif(meta.has_logo && logoUrl) imagesList.push(logoUrl);\nif(meta.has_product && productUrl) imagesList.push(productUrl);\nreturn [{ json: { ...meta, logoUrl, productUrl, imagesList } }];"
       },
       "id": "9712634b-0e61-40ee-bbe4-d689c94d01b8",
       "name": "DM — Build Images List",
@@ -117,7 +135,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const files = $input.all();\nconst meta = $('Split — TrimRx').item.json;\nlet logoUrl = null, productUrl = null;\nfor (const f of files) { const n = (f.json.name||'').toLowerCase(); if(n.includes('logo')) logoUrl=`https://drive.google.com/uc?export=download&id=${f.json.id}`; if(n.includes('product')) productUrl=`https://drive.google.com/uc?export=download&id=${f.json.id}`; }\nconst imagesList = [meta.imageUrl];\nif(meta.has_logo && logoUrl) imagesList.push(logoUrl);\nif(meta.has_product && productUrl) imagesList.push(productUrl);\nreturn [{ json: { ...meta, logoUrl, productUrl, imagesList } }];"
+        "jsCode": "const response = $input.first().json;\nconst files = response.files || [];\nconst meta = $('Split — TrimRx').item.json;\nlet logoUrl = null, productUrl = null;\nfor (const f of files) {\n  const n = (f.name||'').toLowerCase();\n  if(n.includes('logo')) logoUrl=`https://drive.google.com/uc?export=download&id=${f.id}`;\n  if(n.includes('product')) productUrl=`https://drive.google.com/uc?export=download&id=${f.id}`;\n}\nconst imagesList = [meta.imageUrl];\nif(meta.has_logo && logoUrl) imagesList.push(logoUrl);\nif(meta.has_product && productUrl) imagesList.push(productUrl);\nreturn [{ json: { ...meta, logoUrl, productUrl, imagesList } }];"
       },
       "id": "db77221d-1603-45c3-97fa-b558f7b8fd7a",
       "name": "TR — Build Images List",
@@ -263,7 +281,7 @@
     {
       "parameters": {
         "operation": "createFolder",
-        "name": "={{ $('DM — Extract Image URL').item.json.folderName }}",
+        "name": "={{ $('DM — Build Images List').item.json.folderName }}",
         "driveId": {
           "__rl": true,
           "value": "",
@@ -272,7 +290,7 @@
         },
         "folderId": {
           "__rl": true,
-          "value": "={{ $('DM — Extract Image URL').item.json.outputFolderId }}",
+          "value": "={{ $('DM — Build Images List').item.json.outputFolderId }}",
           "mode": "id"
         },
         "options": {}
@@ -295,7 +313,7 @@
     {
       "parameters": {
         "operation": "createFolder",
-        "name": "={{ $('TR — Extract Image URL').item.json.folderName }}",
+        "name": "={{ $('TR — Build Images List').item.json.folderName }}",
         "driveId": {
           "__rl": true,
           "value": "",
@@ -304,7 +322,7 @@
         },
         "folderId": {
           "__rl": true,
-          "value": "={{ $('TR — Extract Image URL').item.json.outputFolderId }}",
+          "value": "={{ $('TR — Build Images List').item.json.outputFolderId }}",
           "mode": "id"
         },
         "options": {}
@@ -624,24 +642,33 @@
     },
     {
       "parameters": {
-        "operation": "getAll",
-        "driveId": {
-          "__rl": true,
-          "value": "",
-          "mode": "list",
-          "cachedResultName": "My Drive"
-        },
-        "folderId": {
-          "__rl": true,
-          "value": "={{ $json.brandKitFolderId }}",
-          "mode": "id"
+        "method": "GET",
+        "url": "https://www.googleapis.com/drive/v3/files",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDriveOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ \"'\" + $json.brandKitFolderId + \"' in parents and trashed=false\" }}"
+            },
+            {
+              "name": "fields",
+              "value": "files(id,name,mimeType)"
+            },
+            {
+              "name": "pageSize",
+              "value": "100"
+            }
+          ]
         },
         "options": {}
       },
       "id": "e7c85198-19a4-41e1-8b41-e42fff6203b7",
       "name": "MV — Get Brand Kit",
-      "type": "n8n-nodes-base.googleDrive",
-      "typeVersion": 3,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
       "position": [
         1776,
         480
@@ -655,7 +682,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const files = $input.all();\nconst meta = $('Split — Medvi').item.json;\nlet logoUrl = null, productUrl = null;\nfor (const f of files) { const n = (f.json.name||'').toLowerCase(); if(n.includes('logo')) logoUrl=`https://drive.google.com/uc?export=download&id=${f.json.id}`; if(n.includes('product')) productUrl=`https://drive.google.com/uc?export=download&id=${f.json.id}`; }\nconst imagesList = [meta.imageUrl];\nif(meta.has_logo && logoUrl) imagesList.push(logoUrl);\nif(meta.has_product && productUrl) imagesList.push(productUrl);\nreturn [{ json: { ...meta, logoUrl, productUrl, imagesList } }];"
+        "jsCode": "const response = $input.first().json;\nconst files = response.files || [];\nconst meta = $('Split — Medvi').item.json;\nlet logoUrl = null, productUrl = null;\nfor (const f of files) {\n  const n = (f.name||'').toLowerCase();\n  if(n.includes('logo')) logoUrl=`https://drive.google.com/uc?export=download&id=${f.id}`;\n  if(n.includes('product')) productUrl=`https://drive.google.com/uc?export=download&id=${f.id}`;\n}\nconst imagesList = [meta.imageUrl];\nif(meta.has_logo && logoUrl) imagesList.push(logoUrl);\nif(meta.has_product && productUrl) imagesList.push(productUrl);\nreturn [{ json: { ...meta, logoUrl, productUrl, imagesList } }];"
       },
       "id": "c3e275b5-98bd-433a-a41a-e82499e09ae1",
       "name": "MV — Build Images List",
@@ -735,7 +762,7 @@
     {
       "parameters": {
         "operation": "createFolder",
-        "name": "={{ $('MV — Extract Image URL').item.json.folderName }}",
+        "name": "={{ $('MV — Build Images List').item.json.folderName }}",
         "driveId": {
           "__rl": true,
           "value": "",
@@ -744,7 +771,7 @@
         },
         "folderId": {
           "__rl": true,
-          "value": "={{ $('MV — Extract Image URL').item.json.outputFolderId }}",
+          "value": "={{ $('MV — Build Images List').item.json.outputFolderId }}",
           "mode": "id"
         },
         "options": {}

@@ -3,7 +3,7 @@
   "nodes": [
     {
       "parameters": {
-        "jsCode": "const response = $input.first().json;\nconst content = response.content[0].text;\nlet variations;\ntry { variations = JSON.parse(content.replace(/```json|```/g, '').trim()); }\ncatch(e) { throw new Error('Failed to parse: ' + content.substring(0,200)); }\nconst meta = $('Parse Ad Analysis1').first().json;\nreturn [{ json: { ...meta, variations } }];"
+        "jsCode": "const response = $input.first().json;\nconst content = response.choices[0].message.content;\nlet variations;\ntry { variations = JSON.parse(content.replace(/```json|```/g, '').trim()); }\ncatch(e) { throw new Error('Failed to parse: ' + content.substring(0,200)); }\nconst meta = $('Parse Ad Analysis1').first().json;\nreturn [{ json: { ...meta, variations } }];"
       },
       "id": "e1f85952-cd37-429f-aef4-347225299d6c",
       "name": "Parse Variations",
@@ -503,7 +503,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\"model\":\"anthropic/claude-opus-4-5\",\"max_tokens\":2000,\"messages\":[{\"role\":\"user\",\"content\":[{\"type\":\"image\",\"source\":{\"type\":\"url\",\"url\":\"{{ $json.imageUrl }}\"}},{\"type\":\"text\",\"text\":\"Analyze this GLP-1 ad and return ONLY valid JSON, no markdown:\\n{\\\"hook\\\":\\\"headline text\\\",\\\"body_copy\\\":\\\"body text\\\",\\\"cta\\\":\\\"cta text\\\",\\\"ad_angle\\\":\\\"transformation/fear/authority/social_proof/curiosity/urgency\\\",\\\"visual_style\\\":\\\"1 sentence description\\\",\\\"has_logo\\\":true or false,\\\"has_product_image\\\":true or false,\\\"target_audience\\\":\\\"description\\\",\\\"key_benefit\\\":\\\"main benefit\\\"}\"}]}]}",
+        "jsonBody": "={\"model\": \"anthropic/claude-opus-4-5\", \"max_tokens\": 2000, \"messages\": [{\"role\": \"user\", \"content\": [{\"type\": \"image_url\", \"image_url\": {\"url\": \"={{ $json.imageUrl }}\"}}, {\"type\": \"text\", \"text\": \"Analyze this GLP-1 ad and return ONLY valid JSON, no markdown:\\n{\\\"hook\\\":\\\"headline text\\\",\\\"body_copy\\\":\\\"body text\\\",\\\"cta\\\":\\\"cta text\\\",\\\"ad_angle\\\":\\\"transformation/fear/authority/social_proof/curiosity/urgency\\\",\\\"visual_style\\\":\\\"1 sentence description\\\",\\\"has_logo\\\":true or false,\\\"has_product_image\\\":true or false,\\\"target_audience\\\":\\\"description\\\",\\\"key_benefit\\\":\\\"main benefit\\\"}\"}]}]}",
         "options": {
           "timeout": 60000
         }
@@ -519,7 +519,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const response = $input.first().json;\nconst content = response.content[0].text;\nlet analysis;\ntry { analysis = JSON.parse(content.replace(/```json|```/g, '').trim()); }\ncatch(e) { analysis = { hook: 'Hook', body_copy: content, cta: 'Learn More', ad_angle: 'transformation', visual_style: 'clean modern', has_logo: false, has_product_image: false, target_audience: 'adults', key_benefit: 'weight loss' }; }\nconst meta = $('Extract File Metadata1').first().json;\nreturn [{ json: { ...meta, analysis } }];"
+        "jsCode": "const response = $input.first().json;\nconst content = response.choices[0].message.content;\nlet analysis;\ntry { analysis = JSON.parse(content.replace(/```json|```/g, '').trim()); }\ncatch(e) { analysis = { hook: 'Hook', body_copy: content, cta: 'Learn More', ad_angle: 'transformation', visual_style: 'clean modern', has_logo: false, has_product_image: false, target_audience: 'adults', key_benefit: 'weight loss' }; }\nconst meta = $('Extract File Metadata1').first().json;\nreturn [{ json: { ...meta, analysis } }];"
       },
       "id": "ffdc8cc2-728c-4a07-89fa-0c22862b6e49",
       "name": "Parse Ad Analysis1",

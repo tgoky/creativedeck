@@ -560,7 +560,7 @@
         "options": {
           "timeout": 120000
         },
-        "body": "={{ JSON.stringify({model:\"anthropic/claude-opus-4-5\",max_tokens:4000,messages:[{role:\"user\",content:\"You are an expert direct response copywriter for GLP-1 weight loss ads.\\n\\nOriginal ad:\\nHook: \" + $json.analysis.hook + \"\\nBody: \" + $json.analysis.body_copy + \"\\nCTA: \" + $json.analysis.cta + \"\\nAngle: \" + $json.analysis.ad_angle + \"\\nBenefit: \" + $json.analysis.key_benefit + \"\\nAudience: \" + $json.analysis.target_audience + \"\\n\\nCreate 9 variations \\u2014 3 per brand. Each needs: hook (max 10 words), body (max 50 words), cta (max 5 words), higgsfield_prompt (detailed image gen prompt referencing visual style: \" + $json.analysis.visual_style + \", 4x5 ratio, brand appropriate).\\n\\nBRAND 1 - DIRECT MEDS: Prescription meds to door. Clinical, doctor-led tone. Adults 35-60.\\nBRAND 2 - MEDVI: Personalized GLP-1 plans, 24/7 support. Warm, supportive tone. Adults who tried everything.\\nBRAND 3 - TRIMRX: Affordable GLP-1 prescriptions. Bold, direct, value tone. Cost-conscious adults.\\n\\nReturn ONLY valid JSON:\\n{\"direct_meds\":[{\"variation\":1,\"hook\":\"\",\"body\":\"\",\"cta\":\"\",\"higgsfield_prompt\":\"\"},{\"variation\":2,\"hook\":\"\",\"body\":\"\",\"cta\":\"\",\"higgsfield_prompt\":\"\"},{\"variation\":3,\"hook\":\"\",\"body\":\"\",\"cta\":\"\",\"higgsfield_prompt\":\"\"}],\"medvi\":[{\"variation\":1,\"hook\":\"\",\"body\":\"\",\"cta\":\"\",\"higgsfield_prompt\":\"\"},{\"variation\":2,\"hook\":\"\",\"body\":\"\",\"cta\":\"\",\"higgsfield_prompt\":\"\"},{\"variation\":3,\"hook\":\"\",\"body\":\"\",\"cta\":\"\",\"higgsfield_prompt\":\"\"}],\"trimrx\":[{\"variation\":1,\"hook\":\"\",\"body\":\"\",\"cta\":\"\",\"higgsfield_prompt\":\"\"},{\"variation\":2,\"hook\":\"\",\"body\":\"\",\"cta\":\"\",\"higgsfield_prompt\":\"\"},{\"variation\":3,\"hook\":\"\",\"body\":\"\",\"cta\":\"\",\"higgsfield_prompt\":\"\"}]}\"}]}) }}"
+        "body": "={{ $json.requestBody }}"
       },
       "id": "36780be0-6e4f-4020-a2cb-a6b4d508206c",
       "name": "Claude — Generate 9 Variations1",
@@ -843,6 +843,19 @@
         0,
         0
       ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const a = $json.analysis;\nconst template = {direct_meds:[{variation:1,hook:'',body:'',cta:'',higgsfield_prompt:''},{variation:2,hook:'',body:'',cta:'',higgsfield_prompt:''},{variation:3,hook:'',body:'',cta:'',higgsfield_prompt:''}],medvi:[{variation:1,hook:'',body:'',cta:'',higgsfield_prompt:''},{variation:2,hook:'',body:'',cta:'',higgsfield_prompt:''},{variation:3,hook:'',body:'',cta:'',higgsfield_prompt:''}],trimrx:[{variation:1,hook:'',body:'',cta:'',higgsfield_prompt:''},{variation:2,hook:'',body:'',cta:'',higgsfield_prompt:''},{variation:3,hook:'',body:'',cta:'',higgsfield_prompt:''}]};\nconst prompt = `You are an expert direct response copywriter for GLP-1 weight loss ads.\\n\\nOriginal ad:\\nHook: ${a.hook}\\nBody: ${a.body_copy}\\nCTA: ${a.cta}\\nAngle: ${a.ad_angle}\\nBenefit: ${a.key_benefit}\\nAudience: ${a.target_audience}\\n\\nCreate 9 variations \\u2014 3 per brand. Each needs: hook (max 10 words), body (max 50 words), cta (max 5 words), higgsfield_prompt (detailed image gen prompt referencing visual style: ${a.visual_style}, 4x5 ratio, brand appropriate).\\n\\nBRAND 1 - DIRECT MEDS: Prescription meds to door. Clinical, doctor-led tone. Adults 35-60.\\nBRAND 2 - MEDVI: Personalized GLP-1 plans, 24/7 support. Warm, supportive tone. Adults who tried everything.\\nBRAND 3 - TRIMRX: Affordable GLP-1 prescriptions. Bold, direct, value tone. Cost-conscious adults.\\n\\nReturn ONLY valid JSON:\\n${JSON.stringify(template)}`;\nconst requestBody = JSON.stringify({model:'anthropic/claude-opus-4-5',max_tokens:4000,messages:[{role:'user',content:prompt}]});\nreturn [{ json: { ...$json, requestBody } }];"
+      },
+      "id": "a16af245-835f-43d1-981b-0770c49a2ecf",
+      "name": "Build Variations Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        944,
+        480
+      ]
     }
   ],
   "pinData": {},
@@ -1103,7 +1116,7 @@
       "main": [
         [
           {
-            "node": "Claude — Generate 9 Variations1",
+            "node": "Build Variations Payload",
             "type": "main",
             "index": 0
           }
@@ -1225,6 +1238,17 @@
         [
           {
             "node": "Merge & Build Doc",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Variations Payload": {
+      "main": [
+        [
+          {
+            "node": "Claude — Generate 9 Variations1",
             "type": "main",
             "index": 0
           }
